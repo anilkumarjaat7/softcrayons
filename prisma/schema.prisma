@@ -1,0 +1,417 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String           @id @default(cuid())
+  name              String?
+  email             String           @unique
+  phone             String?
+  password          String?
+  role              UserRole         @default(STUDENT)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  assignedEnquiries Enquiry[]        @relation("EnquiryAssignedTo")
+  agentEnquiries    Enquiry[]        @relation("EnquiryAgent")
+  blogs             Blog[]           @relation("BlogAuthor")
+  facultyEnquiries  FacultyEnquiry[] @relation("FacultyEnquiryAssignedTo")
+  enterpriseEnquiries EnterpriseEnquiry[] @relation("EnterpriseEnquiryAssignedTo")
+  emailVerified     Boolean          @default(false)
+  image             String?
+  sessions          Session[]
+  accounts          Account[]
+  banned            Boolean          @default(false)
+  banReason         String?
+  banExpires        DateTime?
+
+  @@map("user")
+}
+
+enum UserRole {
+  ADMIN
+  STUDENT
+  INSTRUCTOR
+  COUNSELOR
+  HR
+  CONTENT_WRITER
+  AGENT
+}
+
+model Enquiry {
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String
+  phone        String
+  course       Course?       @relation(fields: [courseId], references: [id])
+  courseId     Int?
+  message      String?
+  note         String?
+  remark       String?
+  assignedTo   User?         @relation("EnquiryAssignedTo", fields: [assignedToId], references: [id])
+  assignedToId String?
+  status       EnquiryStatus @default(NEW)
+  assignedAt   DateTime?
+  agent        User?         @relation("EnquiryAgent", fields: [agentId], references: [id])
+  agentId      String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  ENROLLED
+  DEAD
+  ARCHIVED
+}
+
+model FacultyEnquiry {
+  id            Int                  @id @default(autoincrement())
+  name          String
+  email         String
+  phone         String
+  resume        String?
+  availableDate DateTime?
+  message       String?
+  note          String?
+  remark        String?
+  assignedTo    User?                @relation("FacultyEnquiryAssignedTo", fields: [assignedToId], references: [id])
+  assignedToId  String?
+  status        FacultyEnquiryStatus @default(NEW)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+}
+
+enum FacultyEnquiryStatus {
+  NEW
+  CONTACTED
+  HIRED
+  CLOSED
+  ARCHIVED
+}
+
+model EnterpriseEnquiry {
+  id          Int      @id @default(autoincrement())
+  companyName String
+  email       String
+  phone       String
+  duration    String?
+  message     String?
+  note        String?
+  remark      String?
+  status      EnterpriseEnquiryStatus @default(NEW)
+  assignedTo  User?    @relation("EnterpriseEnquiryAssignedTo", fields: [assignedToId], references: [id])
+  assignedToId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum EnterpriseEnquiryStatus {
+  NEW
+  CONTACTED
+  COMPLETED
+  CLOSED
+  ARCHIVED
+}
+
+model CourseCategory {
+  id              Int      @id @default(autoincrement())
+  title           String   @unique
+  description     String?
+  slug            String   @unique
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  isPublic        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  courses         Course[]
+}
+
+model Course {
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String?
+  category        CourseCategory   @relation(fields: [categoryId], references: [id])
+  categoryId      Int
+  slug            String           @unique
+  about           String?
+  fees            Float?
+  discount        Float?
+  duration        String?
+  difficulty      CourseDifficulty @default(BEGINNER)
+  topics          Json?
+  bannerImage     String?
+  thumbnailImage  String?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  isPublic        Boolean          @default(false)
+  isFeatured      Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  enquiries       Enquiry[]
+}
+
+enum CourseDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model BlogCategory {
+  id              Int      @id @default(autoincrement())
+  title           String   @unique
+  description     String?
+  slug            String   @unique
+  isPublic        Boolean  @default(false)
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  blogs           Blog[]
+}
+
+model Blog {
+  id              Int          @id @default(autoincrement())
+  title           String
+  description     String?
+  author          User         @relation("BlogAuthor", fields: [authorId], references: [id])
+  authorId        String
+  dateOfPublish   DateTime
+  readTime        Int
+  content         String
+  tags            Json?
+  category        BlogCategory @relation(fields: [categoryId], references: [id])
+  categoryId      Int
+  slug            String       @unique
+  tableOfContents Json?
+  bannerImage     String?
+  thumbnailImage  String?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  isPublic        Boolean      @default(false)
+  isFeatured      Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model Placement {
+  id             Int      @id @default(autoincrement())
+  studentName    String
+  avatar         String?
+  courseName     String
+  dialogue       String?
+  packageOffered String?
+  companyName    String?
+  position       String?
+  isPublic       Boolean  @default(false)
+  isFeatured     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Testimonial {
+  id          Int      @id @default(autoincrement())
+  studentName String
+  avatar      String?
+  rating      Int
+  feedback    String
+  isPublic    Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FaqCategory {
+  id              Int      @id @default(autoincrement())
+  title           String   @unique
+  description     String?
+  slug            String   @unique
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  isPublic        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  faqs            Faq[]
+}
+
+model Faq {
+  id              Int         @id @default(autoincrement())
+  question        String
+  answer          String
+  slug            String      @unique
+  category        FaqCategory @relation(fields: [categoryId], references: [id])
+  categoryId      Int
+  isPublic        Boolean     @default(false)
+  isFeatured      Boolean     @default(false)
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Faculty {
+  id               Int      @id @default(autoincrement())
+  name             String
+  designation      String?
+  domain           String?
+  avatar           String?
+  bio              String?
+  experience       String?
+  ProjectsHandled  String?
+  studentsMentored String?
+  ratings          Float?
+  technologies     Json?
+  locations        String?
+  isPublic         Boolean  @default(false)
+  isFeatured       Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Session {
+  id              String   @id
+  expiresAt       DateTime
+  token           String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  ipAddress       String?
+  userAgent       String?
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy  String?
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model TutorialsCategory {
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String?
+  slug            String           @unique
+  position        Int              @unique
+  isPublic        Boolean          @default(false)
+  isFeatured      Boolean          @default(false)
+  logo            String?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  topics          TutorialsTopic[]
+}
+
+model TutorialsTopic {
+  id              Int                 @id @default(autoincrement())
+  title           String
+  description     String?
+  slug            String              @unique
+  category        TutorialsCategory   @relation(fields: [categoryId], references: [id])
+  categoryId      Int
+  position        Int
+  isPublic        Boolean             @default(false)
+  isFeatured      Boolean             @default(false)
+  logo            String?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  subtopics       TutorialsSubTopic[]
+
+  @@unique([categoryId, position])
+}
+
+model TutorialsSubTopic {
+  id              Int               @id @default(autoincrement())
+  title           String
+  description     String?
+  slug            String            @unique
+  topic           TutorialsTopic    @relation(fields: [topicId], references: [id])
+  topicId         Int
+  position        Int
+  isPublic        Boolean           @default(false)
+  isFeatured      Boolean           @default(false)
+  logo            String?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  lessons         TutorialsLesson[]
+
+  @@unique([topicId, position])
+}
+
+model TutorialsLesson {
+  id              Int               @id @default(autoincrement())
+  title           String
+  description     String?
+  slug            String            @unique
+  position        Int
+  content         String
+  tableOfContent  Json?
+  nextLink        String?
+  previousLink    String?
+  homeLink        String?
+  subtopic        TutorialsSubTopic @relation(fields: [subtopicId], references: [id])
+  subtopicId      Int
+  isPublic        Boolean           @default(false)
+  isFeatured      Boolean           @default(false)
+  logo            String?
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([subtopicId, position])
+}
+
+
+

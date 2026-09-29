@@ -1,0 +1,28 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark mode version with light blue/white bars -->
+  
+  <!-- Base platform/line -->
+  <rect x="40" y="140" width="120" height="8" fill="#E8E8E8" rx="2"/>
+  
+  <!-- Bar 1 (shortest) -->
+  <rect x="50" y="110" width="25" height="30" fill="#A8D5FF" rx="2"/>
+  
+  <!-- Bar 2 (medium) -->
+  <rect x="85" y="85" width="25" height="55" fill="#C8E5FF" rx="2"/>
+  
+  <!-- Bar 3 (tallest) -->
+  <rect x="120" y="50" width="25" height="90" fill="#E8F4FF" rx="2"/>
+  
+  <!-- Growth arrow -->
+  <path d="M 50 135 Q 90 110, 155 70" 
+        stroke="#FFA726" 
+        stroke-width="6" 
+        fill="none" 
+        stroke-linecap="round"/>
+  
+  <!-- Arrow head -->
+  <path d="M 155 70 L 145 75 L 150 82 Z" 
+        fill="#FFA726"/>
+  <path d="M 155 70 L 165 72 L 160 80 Z" 
+        fill="#FFA726"/>
+</svg>

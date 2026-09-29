@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
+import { getEnterpriseEnquiries, getEnterpriseEnquiryCounts, type EnterpriseEnquiryFilters } from '@/services/enterprise-enquiry.service';
+import { EnterpriseEnquiryStatus } from '../../../../../generated/prisma/client';
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'HR' && session.user.role !== 'COUNSELOR')) {
+      return NextResponse.json({
+        success: false,
+        error: 'Unauthorized',
+      }, { status: 401 });
+    }
+
+    const searchParams = request.nextUrl.searchParams;
+    
+    const status = searchParams.get('status') as EnterpriseEnquiryStatus | null;
+    const subStatus = searchParams.get('subStatus') as 'unassigned' | 'assigned' | null;
+    const search = searchParams.get('search') || undefined;
+    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1;
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 20;
+    const assignedToId = searchParams.get('assignedToId') || undefined;
+    const getCounts = searchParams.get('counts') === 'true';
+
+    if (getCounts) {
+      const counts = await getEnterpriseEnquiryCounts();
+      return NextResponse.json({
+        success: true,
+        data: counts,
+      });
+    }
+
+    const filters: EnterpriseEnquiryFilters = {
+      status: status || undefined,
+      subStatus: subStatus || undefined,
+      search,
+      page,
+      limit,
+      assignedToId,
+    };
+
+    const { enquiries, total } = await getEnterpriseEnquiries(filters);
+    
+    return NextResponse.json({
+      success: true,
+      data: enquiries,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error: any) {
+    console.error('Error fetching enterprise enquiries:', error);
+    return NextResponse.json({
+      success: false,
+      error: error.message || 'Failed to fetch enterprise enquiries',
+    }, { status: 500 });
+  }
+}

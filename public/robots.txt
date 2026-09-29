@@ -1,0 +1,30 @@
+# Softcrayons Tech Solutions - robots.txt
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://softcrayons.in/sitemap.xml
+
+# Disallow admin/api routes
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /sign-in
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+
+# Allow search engine crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
