@@ -6,7 +6,11 @@ async function getNavbarTopics() {
   return getPublicTutorialNavbarTopics(4);
 }
 
-export default async function TutorialsLayout({ children }: { children: ReactNode }) {
+export default async function TutorialsLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const featuredTopics = await getNavbarTopics();
 
   return (

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { TutorialSidebar } from "@/components/tutorials/TutorialSidebar";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Layers, Sparkles } from "lucide-react";
-import { fetchServerApi } from "@/lib/server-api";
+import { getPublicTutorialTopicBySlug } from "@/services/tutorial-public.service";
 
 export const revalidate = 600;
 
@@ -40,29 +40,23 @@ type TopicData = {
   subtopics: TopicSubtopic[];
 };
 
-type TopicResponse = {
-  success: boolean;
-  data?: TopicData;
-  error?: string;
-};
-
-async function getTopic(slug: string) {
+async function getTopic(slug: string): Promise<TopicData | null> {
   try {
-    const response = await fetchServerApi<TopicResponse>(`/api/tutorial-topics/${encodeURIComponent(slug)}`, {
-      next: { revalidate: 600 },
-    });
+    const topic = await getPublicTutorialTopicBySlug(slug);
 
-    if (!response.success || !response.data) {
+    if (!topic) {
       return null;
     }
 
     return {
-      ...response.data,
-      subtopics: [...response.data.subtopics]
+      ...topic,
+      subtopics: [...topic.subtopics]
         .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
         .map((subtopic) => ({
           ...subtopic,
-          lessons: [...subtopic.lessons].sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
+          lessons: [...subtopic.lessons].sort(
+            (a, b) => (a.position ?? 0) - (b.position ?? 0),
+          ),
         })),
     };
   } catch (error: unknown) {
@@ -74,24 +68,36 @@ async function getTopic(slug: string) {
 }
 
 function isNotFoundError(error: unknown) {
-  return typeof error === "object" && error !== null && "status" in error && error.status === 404;
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    error.status === 404
+  );
 }
 
 function toKeywords(value: unknown): string[] | undefined {
   if (!value) return undefined;
   if (Array.isArray(value)) return value.map((keyword) => String(keyword));
-  if (typeof value === "string") return value.split(",").map((keyword) => keyword.trim()).filter(Boolean);
+  if (typeof value === "string")
+    return value
+      .split(",")
+      .map((keyword) => keyword.trim())
+      .filter(Boolean);
   return undefined;
 }
 
-export async function generateMetadata({ params }: TopicPageParams): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: TopicPageParams): Promise<Metadata> {
   const { topicSlug } = await params;
   const topic = await getTopic(topicSlug);
 
   if (!topic) return {};
 
   const title = topic.metaTitle || `${topic.title} tutorials`;
-  const description = topic.metaDescription || topic.description || "Tutorials and lessons";
+  const description =
+    topic.metaDescription || topic.description || "Tutorials and lessons";
   const keywords = toKeywords(topic.metaKeywords);
 
   return {
@@ -134,7 +140,9 @@ export default async function TopicPage({ params }: TopicPageParams) {
             <header className="brand-panel rounded-md p-6 md:p-8">
               <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
                 <Sparkles className="h-4 w-4 text-secondary" />
-                <Link href="/tutorials" className="hover:text-primary">Tutorials</Link>
+                <Link href="/tutorials" className="hover:text-primary">
+                  Tutorials
+                </Link>
                 {topic.category && (
                   <>
                     <span>/</span>
@@ -145,9 +153,13 @@ export default async function TopicPage({ params }: TopicPageParams) {
                 )}
               </div>
               <div className="mt-5 space-y-3">
-                <h1 className="text-4xl font-black leading-tight text-foreground md:text-5xl">{topic.title}</h1>
+                <h1 className="text-4xl font-black leading-tight text-foreground md:text-5xl">
+                  {topic.title}
+                </h1>
                 {topic.description && (
-                  <p className="max-w-3xl text-lg leading-8 text-muted-foreground">{topic.description}</p>
+                  <p className="max-w-3xl text-lg leading-8 text-muted-foreground">
+                    {topic.description}
+                  </p>
                 )}
               </div>
             </header>
@@ -158,17 +170,31 @@ export default async function TopicPage({ params }: TopicPageParams) {
               </div>
               <div className="space-y-3">
                 {topic.subtopics.map((subtopic) => (
-                  <div key={subtopic.id} className="brand-panel rounded-md p-5 transition-colors hover:border-primary/30">
+                  <div
+                    key={subtopic.id}
+                    className="brand-panel rounded-md p-5 transition-colors hover:border-primary/30"
+                  >
                     <div className="space-y-1">
-                      <p className="text-xs font-bold uppercase tracking-wide text-secondary">Subtopic</p>
-                      <h3 className="text-lg font-black text-foreground">{subtopic.title}</h3>
+                      <p className="text-xs font-bold uppercase tracking-wide text-secondary">
+                        Subtopic
+                      </p>
+                      <h3 className="text-lg font-black text-foreground">
+                        {subtopic.title}
+                      </h3>
                       {subtopic.description && (
-                        <p className="text-sm leading-relaxed text-muted-foreground">{subtopic.description}</p>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {subtopic.description}
+                        </p>
                       )}
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {subtopic.lessons.length === 0 && (
-                        <Badge variant="secondary" className="bg-muted text-muted-foreground">Lessons coming soon</Badge>
+                        <Badge
+                          variant="secondary"
+                          className="bg-muted text-muted-foreground"
+                        >
+                          Lessons coming soon
+                        </Badge>
                       )}
                       {subtopic.lessons.map((lesson) => (
                         <Link
