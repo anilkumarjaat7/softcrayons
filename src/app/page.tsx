@@ -12,12 +12,15 @@ import { PlacementsMarquee } from "@/components/PlacementsMarquee";
 import { TestimonialsSection } from "@/components/TestimonialsSection";
 import { TrustSection } from "@/components/TrustSection";
 import { WhyChooseUs } from "@/components/WhyChooseUs";
+import { getPublicTutorialNavbarTopics } from "@/services/tutorial-public.service";
 
-export default function Home() {
+export default async function Home() {
+  const tutorialTopics = await getPublicTutorialNavbarTopics(12);
+
   return (
     <div className="min-h-screen bg-background">
       <main>
-        <HeroSection />
+        <HeroSection tutorialTopics={tutorialTopics} />
         <CoursesSection />
         <PlacementsMarquee />
         <LearningPathway />

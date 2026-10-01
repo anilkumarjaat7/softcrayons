@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, CheckCircle2, Code2, Layers, LibraryBig, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TutorialSearch } from "@/components/tutorials/TutorialSearch";
-import { fetchServerApi } from "@/lib/server-api";
+import { getPublicTutorialLanding } from "@/services/tutorial-public.service";
 
 export const metadata: Metadata = {
   title: "Tutorials | SoftCrayons",
@@ -18,7 +18,6 @@ type TopicLink = {
   slug: string;
   description?: string | null;
   position?: number | null;
-  categoryId: number;
   firstLessonSlug?: string;
 };
 
@@ -31,22 +30,10 @@ type CategoryListing = {
   topics: TopicLink[];
 };
 
-type LandingResponse = {
-  success: boolean;
-  data: CategoryListing[];
-  error?: string;
-};
-
 async function getTutorialLanding(): Promise<CategoryListing[]> {
-  const response = await fetchServerApi<LandingResponse>("/api/tutorials/landing", {
-    next: { revalidate: 0 },
-  });
+  const categories = await getPublicTutorialLanding();
 
-  if (!response.success) {
-    throw new Error(response.error || "Failed to fetch tutorials landing data");
-  }
-
-  return [...response.data]
+  return [...categories]
     .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
     .map((category) => ({
       ...category,
