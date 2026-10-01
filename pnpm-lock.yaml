@@ -126,7 +126,7 @@ importers:
         specifier: ^3.17.1
         version: 3.21.0(@tiptap/extensions@3.21.0(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0))
       '@tiptap/extension-table':
-        specifier: 3.21.0
+        specifier: ^3.17.1
         version: 3.21.0(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0)
       '@tiptap/extension-text-align':
         specifier: ^3.17.1
