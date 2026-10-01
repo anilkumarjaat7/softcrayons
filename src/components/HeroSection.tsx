@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  ArrowRight,
-  BookOpen,
-  CheckCircle2,
-  Code2,
-  GraduationCap,
-  Sparkles,
-  Terminal,
-  Users,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CheckCircle2, GraduationCap, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 
 const technologies = [
