@@ -81,7 +81,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { slug: true, updatedAt: true },
   });
 
-  const coursePages: MetadataRoute.Sitemap = courses.map((course) => ({
+  const coursePages: MetadataRoute.Sitemap = courses.map((course: any) => ({
     url: `${SITE_URL}/courses/${course.slug}`,
     lastModified: course.updatedAt,
     changeFrequency: "weekly",
@@ -94,7 +94,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { slug: true, updatedAt: true },
   });
 
-  const blogPages: MetadataRoute.Sitemap = blogs.map((blog) => ({
+  const blogPages: MetadataRoute.Sitemap = blogs.map((blog: any) => ({
     url: `${SITE_URL}/blogs/${blog.slug}`,
     lastModified: blog.updatedAt,
     changeFrequency: "weekly",

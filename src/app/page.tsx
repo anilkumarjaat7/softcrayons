@@ -15,7 +15,9 @@ import { WhyChooseUs } from "@/components/WhyChooseUs";
 import { getPublicTutorialNavbarTopics } from "@/services/tutorial-public.service";
 
 export default async function Home() {
-  const tutorialTopics = await getPublicTutorialNavbarTopics(12);
+  const tutorialTopics = process.env.DATABASE_URL
+    ? await getPublicTutorialNavbarTopics(12)
+    : [];
 
   return (
     <div className="min-h-screen bg-background">

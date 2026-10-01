@@ -1,12 +1,24 @@
-import { prisma } from "@/lib/prisma";
+import { hasDatabaseConfig, prisma } from "@/lib/prisma";
 
-type PositionItem = { position?: number | null };
+type PositionItem = { position?: number | null; [key: string]: any };
 
 function sortByPosition<T extends PositionItem>(items: T[]): T[] {
   return [...items].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 }
 
+function assertDatabaseAvailable() {
+  if (!hasDatabaseConfig || !prisma) {
+    return false;
+  }
+
+  return true;
+}
+
 export async function getPublicTutorialLanding() {
+  if (!assertDatabaseAvailable()) {
+    return [];
+  }
+
   const [categories, topics] = await Promise.all([
     prisma.tutorialsCategory.findMany({
       where: { isPublic: true },
@@ -48,7 +60,8 @@ export async function getPublicTutorialLanding() {
     }));
 
     const firstLessonSlug =
-      sortedSubtopics.find((subtopic) => subtopic.lessons.length > 0)?.lessons[0]?.slug ?? undefined;
+      sortedSubtopics.find((subtopic) => subtopic.lessons.length > 0)
+        ?.lessons[0]?.slug ?? undefined;
 
     return {
       id: topic.id,
@@ -74,6 +87,10 @@ export async function getPublicTutorialLanding() {
 }
 
 export async function getPublicTutorialNavbarTopics(limit = 4) {
+  if (!assertDatabaseAvailable()) {
+    return [];
+  }
+
   const featured = await prisma.tutorialsTopic.findMany({
     where: { isPublic: true, isFeatured: true },
     select: { title: true, slug: true, position: true },
@@ -93,12 +110,22 @@ export async function getPublicTutorialNavbarTopics(limit = 4) {
     select: { title: true, slug: true, position: true },
   });
 
-  const sortedFallback = sortByPosition(fallback).slice(0, limit - sortedFeatured.length);
+  const sortedFallback = sortByPosition(fallback).slice(
+    0,
+    limit - sortedFeatured.length,
+  );
 
-  return [...sortedFeatured, ...sortedFallback].map(({ title, slug }) => ({ title, slug }));
+  return [...sortedFeatured, ...sortedFallback].map(({ title, slug }) => ({
+    title,
+    slug,
+  }));
 }
 
 export async function getPublicTutorialTopicBySlug(slug: string) {
+  if (!assertDatabaseAvailable()) {
+    return null;
+  }
+
   const topic = await prisma.tutorialsTopic.findFirst({
     where: { slug, isPublic: true },
     include: {
@@ -134,6 +161,10 @@ export async function getPublicTutorialTopicBySlug(slug: string) {
 }
 
 export async function getPublicTutorialLessonBySlug(slug: string) {
+  if (!assertDatabaseAvailable()) {
+    return null;
+  }
+
   const lesson = await prisma.tutorialsLesson.findFirst({
     where: { slug, isPublic: true },
     include: {
@@ -167,6 +198,10 @@ export async function getPublicTutorialLessonBySlug(slug: string) {
 }
 
 export async function getPublicTutorialSearch(query: string, limit: number) {
+  if (!assertDatabaseAvailable()) {
+    return { topics: [], lessons: [] };
+  }
+
   const [topics, lessons] = await Promise.all([
     prisma.tutorialsTopic.findMany({
       where: {
